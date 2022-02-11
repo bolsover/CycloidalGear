@@ -1,7 +1,9 @@
 from __future__ import division
-
+from AlibreScript.API import *
 import math
-
+import sys
+import Utils
+reload(Utils)
 
 class Point:
 
@@ -23,7 +25,7 @@ class CycloidalGear:
     def __init__(self, values):
         """Utility to develop Cycloidal Gear sketches using Alibre Design
         :param values is an array  [None, module, wheel_count, pinion_count, wheel_center_hole, pinion_center_hole,
-        custom_slop, custom_slop_enabled, plane, sketch]"""
+        custom_slop, custom_slop_enabled, draw_wheel, draw_pinion, plane, sketch]"""
         self.wheel_add_factor = 0.0
         self.wheel_practical_addendum_factor = 0.0
         self.pinion_add_factor = 0.0
@@ -45,8 +47,11 @@ class CycloidalGear:
         self.wheel_count = values[2]
         self.pinion_count = values[3]
         self.module = values[1]
-        self.sketch = values[9]
+        self.draw_wheel = values[8]
+        self.draw_pinion = values[9]
+        self.sketch = values[11]
         self.pinion_half_tooth_angle = 0.0
+        #print dir()
 
         self.build_gear_set()  # builds the gears
 
@@ -204,54 +209,98 @@ class CycloidalGear:
 
             point_1_x = outer_radius * (math.cos(math.radians(ref_angle_apex)))
             point_1_y = outer_radius * (math.sin(math.radians(ref_angle_apex)))
+            #print('1 ' + str(point_1_x) + ', ' + str(point_1_x))
 
             point_2_x = wheel_pitch_radius * (math.cos(math.radians(ref_angle_apex + (tooth_angle / 4))))
             point_2_y = wheel_pitch_radius * (math.sin(math.radians(ref_angle_apex + (tooth_angle / 4))))
-
+            #print('2 ' + str(point_2_x) + ', ' + str(point_2_x))
+            
             point_3_x = inner_radius * (math.cos(math.radians(ref_angle_apex + (tooth_angle / 4))))
             point_3_y = inner_radius * (math.sin(math.radians(ref_angle_apex + (tooth_angle / 4))))
+            #print('3 ' + str(point_3_x) + ', ' + str(point_3_x))
 
             point_4_x = inner_radius * (math.cos(math.radians(ref_angle_apex - (tooth_angle / 4))))
             point_4_y = inner_radius * (math.sin(math.radians(ref_angle_apex - (tooth_angle / 4))))
+            #print('4 ' + str(point_4_x) + ', ' + str(point_4_x))
 
             point_5_x = wheel_pitch_radius * (math.cos(math.radians(ref_angle_apex - (tooth_angle / 4))))
             point_5_y = wheel_pitch_radius * (math.sin(math.radians(ref_angle_apex - (tooth_angle / 4))))
-
+            #print('5 ' + str(point_5_x) + ', ' + str(point_5_x))
+            
             point_6_x = inner_radius * (math.cos(math.radians(next_ref_angle_apex - (tooth_angle / 4))))
             point_6_y = inner_radius * (math.sin(math.radians(next_ref_angle_apex - (tooth_angle / 4))))
+            #print('6 ' + str(point_6_x) + ', ' + str(point_6_x))
 
             point_a = Point(point_1_x, point_1_y)
 
             point_b = Point(point_2_x, point_2_y)
 
             point_c = Point(point_5_x, point_5_y)
+            
+            #sp1 = SketchPoint(point_1_x, point_1_y, True)
+            #self.sketch.AddPoint(sp1)
+            
+            #sp2 = SketchPoint(point_2_x, point_2_y, True)
+            #self.sketch.AddPoint(sp2)
+            
+            #sp3 = SketchPoint(point_3_x, point_3_y, True)
+            #self.sketch.AddPoint(sp3)
+            
+            #sp4 = SketchPoint(point_4_x, point_4_y, True)
+            #self.sketch.AddPoint(sp4)
+            
+            #sp5 = SketchPoint(point_5_x, point_5_y, True)
+            #self.sketch.AddPoint(sp5)
+            
+            #sp6 = SketchPoint(point_6_x, point_6_y, True)
+            #self.sketch.AddPoint(sp6)
+             
+            #Utils.AddDimensions(self.sketch , sp1)
+            #Utils.AddDimensions(self.sketch , sp2)
+            #Utils.AddDimensions(self.sketch , sp3)
+            #Utils.AddDimensions(self.sketch , sp4)
+            #Utils.AddDimensions(self.sketch , sp5)
+            #Utils.AddDimensions(self.sketch , sp6)
+          
+            
 
             rad_center = self.addendum_radius_centre(self.wheel_addendum_radius, point_a, point_b, wheel_centre_x,
                                                      wheel_centre_y)
 
-            self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_1_x, point_1_y, point_2_x,
+            circularArc1 = self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_1_x, point_1_y, point_2_x,
                                              point_2_y, False)
+            #self.sketch.AddDimension(circularArc1)
             rad_center = self.addendum_radius_centre(self.wheel_addendum_radius, point_c, point_a, wheel_centre_x,
                                                      wheel_centre_y)
 
-            self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_5_x, point_5_y, point_1_x,
+            circularArc2 = self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_5_x, point_5_y, point_1_x,
                                              point_1_y, False)
-
-            self.sketch.AddLine(point_2_x, point_2_y, point_3_x, point_3_y, False)
-            self.sketch.AddLine(point_4_x, point_4_y, point_5_x, point_5_y, False)
-            self.sketch.AddArcCenterStartEnd(wheel_centre_x, wheel_centre_y, point_3_x, point_3_y, point_6_x, point_6_y,
+            #self.sketch.AddDimension(circularArc2)
+            
+            line1 = self.sketch.AddLine(point_2_x, point_2_y, point_3_x, point_3_y, False)
+            #self.sketch.AddDimension(line1.Start, line1.End)
+            line2 = self.sketch.AddLine(point_4_x, point_4_y, point_5_x, point_5_y, False)
+            #self.sketch.AddDimension(line2.Start, line2.End)
+            circularArc3 = self.sketch.AddArcCenterStartEnd(wheel_centre_x, wheel_centre_y, point_3_x, point_3_y, point_6_x, point_6_y,
                                              False)
+            #self.sketch.AddDimension(circularArc3)
+            self.sketch.AddConstraint([circularArc1, circularArc2, circularArc3, line1, line2], Sketch.Constraints.Fix)
 
         # add center hole
-        self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, self.wheel_center_hole, False)
+        circlecenter = self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, self.wheel_center_hole, False)
+        self.sketch.AddConstraint([circlecenter.CenterPoint, self.sketch.Origin], Sketch.Constraints.Coincident)
+        #self.sketch.AddDimension(circlecenter)
 
         # diameter reference lines
-        self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, self.wheel_pitch_diameter, True)
-        self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, outer_diameter, True)
-        self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, inner_diameter, True)
+        circle1 = self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, self.wheel_pitch_diameter, True)
+        #self.sketch.AddDimension(circle1)
+        circle2 = self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, outer_diameter, True)
+        #self.sketch.AddDimension(circle2)
+        circle3 = self.sketch.AddCircle(wheel_centre_x, wheel_centre_y, inner_diameter, True)
+        #self.sketch.AddDimension(circle3)
+        self.sketch.AddConstraint([circlecenter, circle1, circle2, circle3], Sketch.Constraints.Fix)
 
     def build_wheel(self):
-        self.compute_wheel()
         self.build_wheel_sketch_lines()
 
     def initialize_pinion_tooth_width(self):
@@ -300,6 +349,7 @@ class CycloidalGear:
         half_tooth_angle = self.pinion_half_tooth_angle
 
         for t in range(0, self.pinion_count):
+        #t = 0
             ref_angle_apex = tooth_angle * t
 
             next_ref_angle_apex = tooth_angle * (t + 1)
@@ -331,30 +381,67 @@ class CycloidalGear:
 
             point_c = Point(point_5_x, point_5_y)
 
+            #sp1 = SketchPoint(point_1_x, point_1_y, True)
+            #self.sketch.AddPoint(sp1)
+
+            #sp2 = SketchPoint(point_2_x, point_2_y, True)
+            #self.sketch.AddPoint(sp2)
+
+            #sp3 = SketchPoint(point_3_x, point_3_y, True)
+            #self.sketch.AddPoint(sp3)
+
+            #sp4 = SketchPoint(point_4_x, point_4_y, True)
+            #self.sketch.AddPoint(sp4)
+
+            #sp5 = SketchPoint(point_5_x, point_5_y, True)
+            #self.sketch.AddPoint(sp5)
+
+            #sp6 = SketchPoint(point_6_x, point_6_y, True)
+            #self.sketch.AddPoint(sp6)
+
+            #Utils.AddDimensions(self.sketch , sp1)
+            #Utils.AddDimensions(self.sketch , sp2)
+            #Utils.AddDimensions(self.sketch , sp3)
+            #Utils.AddDimensions(self.sketch , sp4)
+            #Utils.AddDimensions(self.sketch , sp5)
+            #Utils.AddDimensions(self.sketch , sp6)
+
             rad_center = self.addendum_radius_centre(self.pinion_addendum_radius, point_a, point_b, pinion_centre_x,
                                                      pinion_centre_y)
 
-            self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_1_x, point_1_y, point_2_x,
+            circularArc1 = self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_1_x, point_1_y, point_2_x,
                                              point_2_y, False)
-
+            #self.sketch.AddDimension(circularArc1)
             rad_center = self.addendum_radius_centre(self.pinion_addendum_radius, point_c, point_a, pinion_centre_x,
                                                      pinion_centre_y)
 
-            self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_5_x, point_5_y, point_1_x,
+            circularArc2 = self.sketch.AddArcCenterStartEnd(rad_center.x, rad_center.y, point_5_x, point_5_y, point_1_x,
                                              point_1_y, False)
+            #self.sketch.AddDimension(circularArc2)
 
-            self.sketch.AddLine(point_2_x, point_2_y, point_3_x, point_3_y, False)
-            self.sketch.AddLine(point_4_x, point_4_y, point_5_x, point_5_y, False)
-            self.sketch.AddArcCenterStartEnd(pinion_centre_x, pinion_centre_y, point_3_x, point_3_y, point_6_x,
+            line1 = self.sketch.AddLine(point_2_x, point_2_y, point_3_x, point_3_y, False)
+            line2 = self.sketch.AddLine(point_4_x, point_4_y, point_5_x, point_5_y, False)
+            circularArc3 = self.sketch.AddArcCenterStartEnd(pinion_centre_x, pinion_centre_y, point_3_x, point_3_y, point_6_x,
                                              point_6_y, False)
+            #self.sketch.AddDimension(circularArc3)
+
+            self.sketch.AddConstraint([circularArc1, circularArc2, circularArc3, line1, line2], Sketch.Constraints.Fix)
 
         # add center hole
-        self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, self.pinion_center_hole, False)
-
+        circlecentre = self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, self.pinion_center_hole, False)
+        #self.sketch.AddDimension(circlecentre)
+        #self.sketch.AddConstraint([circlecentre.CenterPoint, self.sketch.Origin], Sketch.Constraints.Coincident)
+        
+        
         # diameter reference lines
-        self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, self.pinion_pitch_diameter, True)
-        self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, outer_diameter, True)
-        self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, inner_diameter, True)
+        circle1 = self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, self.pinion_pitch_diameter, True)
+        #self.sketch.AddDimension(circle1)
+        circle2 = self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, outer_diameter, True)
+        #self.sketch.AddDimension(circle2)
+        circle3 = self.sketch.AddCircle(pinion_centre_x, pinion_centre_y, inner_diameter, True)
+        #self.sketch.AddDimension(circle3)
+
+        self.sketch.AddConstraint([circlecentre, circle1, circle2, circle3], Sketch.Constraints.Fix)
 
     def build_pinion(self):
         self.pinion_pitch_diameter = self.module * self.pinion_count
@@ -367,5 +454,10 @@ class CycloidalGear:
         self.build_pinion_sketch_lines()
 
     def build_gear_set(self):
-        self.build_wheel()
-        self.build_pinion()
+        self.compute_wheel()
+        if self.draw_wheel:
+            self.build_wheel()
+        if self.draw_pinion:
+            self.build_pinion()
+            
+   
